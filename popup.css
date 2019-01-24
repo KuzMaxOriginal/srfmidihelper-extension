@@ -1,0 +1,44 @@
+body {
+	width: 400px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#loadingScreen {
+	position: absolute;
+	background: white;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#runtimeScreen {
+	display: none;
+	position: absolute;
+	background: white;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+#deviceSelect {
+	flex: 1 1 0;
+	margin-right: .5rem;
+}
+
+#goBtn {
+	margin-top: .5rem;
+	width: 100%;
+}
+
+#selectAnotherDevice {
+	margin-top: .5rem;
+}
