@@ -1,0 +1,11 @@
+export default {
+
+    // Storage actions
+    UPDATE_DEVICE_LIST: 'UPDATE_DEVICE_LIST',
+    SELECT_DEVICE: 'SELECT_DEVICE',
+    SYNC_STORAGE: 'SYNC_STORAGE',
+
+    // Storage mutations
+    SET_DEVICE_LIST: 'SET_DEVICE_LIST',
+    SET_DEVICE_SELECTED: 'SET_DEVICE_SELECTED'
+};

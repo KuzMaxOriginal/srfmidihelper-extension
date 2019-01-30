@@ -1,23 +1,11 @@
 body {
 	width: 400px;
-	display: flex;
-	flex-wrap: wrap;
 }
 
-#loadingScreen {
-	position: absolute;
-	background: white;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
+.messageScreen {
+	padding: .5rem;
+	visibility: hidden;
 	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-#runtimeScreen {
-	display: none;
 	position: absolute;
 	background: white;
 	top: 0;
@@ -27,6 +15,23 @@ body {
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
+	flex-wrap: wrap;
+}
+
+.messageScreen.messageScreen-show {
+	visibility: visible;
+}
+
+span.messageScreen-message {
+	max-width: 350px;
+	text-align: center;
+	font-size: .875rem;
+}
+
+#deviceSelectScreen {
+	position: static;
+	flex-direction: row;
+	visibility: visible;
 }
 
 #deviceSelect {

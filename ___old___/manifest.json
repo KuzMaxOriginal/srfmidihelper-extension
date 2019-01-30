@@ -9,7 +9,8 @@
 	"permissions": [
 		"nativeMessaging",
 		"activeTab",
-		"storage"
+		"storage",
+		"tabs"
 	],
 	"content_scripts": [{
 		"matches": ["*://*.sightreadingfactory.com/app"],
@@ -19,5 +20,8 @@
 	"background": {
 		"scripts": ["background.js"],
 		"persistent": false
-	}
+	},
+	"web_accessible_resources": [
+		"inject.js"
+	]
 }

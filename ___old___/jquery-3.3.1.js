@@ -6165,11 +6165,6 @@ function curCSS( elem, name, computed ) {
 	//   .css('filter') (IE 9 only, #12537)
 	//   .css('--customProperty) (#3144)
 	if ( computed ) {
-		console.log(elem, computed);
-
-		if (name == "backgroundImage")
-			debugger;
-
 		ret = computed.getPropertyValue( name ) || computed[ name ];
 
 		if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
