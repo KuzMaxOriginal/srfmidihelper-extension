@@ -4,6 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import constants from "./constants.js";
+import {messaging} from "../common";
 
 import "font-awesome/scss/font-awesome.scss";
 
@@ -15,8 +16,14 @@ new Vue({
     render: h => h(App)
 }).$mount("#app");
 
-chrome.runtime.onMessage.addListener(function(request) {
+messaging.addMessageHandler(function (request) {
     if (request.type === "storage_updated") {
         store.dispatch(constants.SYNC_STORAGE);
     }
 });
+
+messaging.sendMessage({
+    type: "storage_updated"
+});
+
+router.push({name: "loading"});

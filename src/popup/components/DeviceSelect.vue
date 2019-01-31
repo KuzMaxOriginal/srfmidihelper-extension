@@ -1,20 +1,21 @@
 <template>
     <div id="deviceSelect">
-    	<v-select class="select-devices"
-            :options="$store.state.deviceList"
-            :value="$store.state.deviceSelected"
-            @input="setDeviceSelected">
+        <v-select class="select-devices"
+                  :options="$store.state.deviceList"
+                  :value="$store.state.deviceSelected"
+                  placeholder="-- Select device --"
+                  @input="setDeviceSelected">
         </v-select>
-    	<button class="button-refresh" @click="updateDeviceList">
-    		<i class="fa fa-refresh" aria-hidden="true"></i>
-    	</button>
-    	<button class="button-select" @click="selectDevice">Select device</button>
+        <button class="button-refresh" @click="updateDeviceList">
+            <i class="fa fa-refresh" aria-hidden="true"></i>
+        </button>
+        <button class="button-select" @click="selectDevice">Select device</button>
     </div>
 </template>
 
 <script>
     import constants from "../constants.js";
-    import { mapState } from 'vuex';
+    import {mapState} from 'vuex';
 
     import vSelect from 'vue-select';
 
@@ -40,7 +41,7 @@
     };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
     #deviceSelect {
         display: flex;
         flex-wrap: wrap;
@@ -48,6 +49,10 @@
         .select-devices {
             flex-grow: 1;
             margin-right: .5rem;
+
+            .dropdown-toggle .clear {
+                display: none;
+            }
         }
 
         .button-select {

@@ -1,32 +1,32 @@
-import { storage, native, tabs } from "../common";
-
-const chrome = window.chrome;
+import {messaging, storage, native, tabs} from "../common";
 
 let nativePort, nativePortConnected = false;
 
-let base64ToBinary = function(base64) {
+let base64ToBinary = function (base64) {
     let raw = atob(base64);
     let rawLength = raw.length;
     let array = new Uint8Array(new ArrayBuffer(rawLength));
 
-    for(let i = 0; i < rawLength; i++) {
+    for (let i = 0; i < rawLength; i++) {
         array[i] = raw.charCodeAt(i);
     }
 
     return array;
 }
 
-let initNativePort = function() {
+let initNativePort = function () {
     nativePort = chrome.runtime.connectNative('com.mkuzmin.srfmidihelper');
     nativePortConnected = true;
 
-    nativePort.onMessage.addListener(function(msg) {
+    nativePort.onMessage.addListener(function (msg) {
         switch (msg.type) {
-            case "devices_list":
-                storage.update({devices: msg.devices});
-                break;
             case "pong":
                 storage.update({connectedToHost: true});
+                console.log("Successfully connected to host");
+                break;
+            case "devices_list":
+                storage.update({deviceList: msg.devices});
+                console.log("Retrieved devices list", msg.devices);
                 break;
             case "midi_message":
                 let data = base64ToBinary(msg.message);
@@ -40,21 +40,12 @@ let initNativePort = function() {
                 tabs.midiMessage(midiData);
                 console.log("MIDI Message", midiData);
                 break;
-            case "device_closed":
-                storage.update({
-                    // showRuntimeScreen: false,
-                    deviceSelected: -1,
-                    devices: []
-                });
-
-                console.log("MIDI device was closed");
-                break;
         }
     });
-    
-    nativePort.onDisconnect.addListener(function() {
+
+    nativePort.onDisconnect.addListener(function () {
         nativePortConnected = false;
-        
+
         storage.update({
             connectedToHost: false,
             // isSheetGenerated: false
@@ -63,19 +54,20 @@ let initNativePort = function() {
         console.log("Failed to connect the host: " + chrome.runtime.lastError.message);
     });
 
-    console.log("Connected to host");
+    console.log("Connecting to host...");
 }
 
-chrome.runtime.onMessage.addListener(function(request) {
+messaging.addMessageHandler(function (request) {
     if (request.type === "native_message") {
         if (!nativePortConnected)
             return;
 
         nativePort.postMessage(request.data);
+        console.log("Sending native message", request.data);
     }
 });
 
-chrome.runtime.onConnect.addListener(function(tabPort) {
+chrome.runtime.onConnect.addListener(function (tabPort) {
     tabs.add(tabPort);
 
     if (tabs.count() === 1) {
@@ -86,7 +78,7 @@ chrome.runtime.onConnect.addListener(function(tabPort) {
         native.listenDevice();
     }
 
-    tabPort.onDisconnect.addListener(function() {
+    tabPort.onDisconnect.addListener(function () {
         tabs.remove(tabPort);
 
         if (tabs.count() === 0) {
@@ -106,9 +98,7 @@ chrome.runtime.onConnect.addListener(function(tabPort) {
 storage.update({
     connectedToHost: false,
     // showRuntimeScreen: false,
-    // isSheetGenerated: false,
-    deviceSelected: -1,
-    devices: []
+    isSheetGenerated: false,
+    deviceSelected: null,
+    deviceList: []
 });
-
-initNativePort(); // Temporary

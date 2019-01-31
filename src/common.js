@@ -1,13 +1,28 @@
-const chrome = window.chrome;
+// Workaround for receiving runtime messages from the same page
+
+let messaging = {
+    _messageHandlers: [],
+    sendMessage(message) {
+        this._messageHandlers.forEach((handler) => {
+            handler.apply(null, [message]);
+        });
+
+        chrome.runtime.sendMessage(message);
+    },
+    addMessageHandler(callback) {
+        this._messageHandlers.push(callback);
+        chrome.runtime.onMessage.addListener(callback);
+    }
+};
 
 let storage = {
     update(values, callback) {
-        chrome.storage.local.set(values, function() {
-            chrome.runtime.sendMessage({
+        chrome.storage.local.set(values, function () {
+            messaging.sendMessage({
                 type: "storage_updated"
             });
 
-            typeof callback === "function" && callback.apply(this, arguments);
+            typeof callback === "function" && callback.apply(this, [].slice.call(arguments));
         });
     },
     get(keys, callback) {
@@ -17,7 +32,7 @@ let storage = {
 
 let native = {
     ping() {
-        chrome.runtime.sendMessage({
+        messaging.sendMessage({
             type: "native_message",
             data: {
                 cmd: "ping"
@@ -25,7 +40,7 @@ let native = {
         });
     },
     listDevices() {
-        chrome.runtime.sendMessage({
+        messaging.sendMessage({
             type: "native_message",
             data: {
                 cmd: "list_devices"
@@ -34,7 +49,7 @@ let native = {
     },
     listenDevice() {
         storage.get('deviceSelected', (result) => {
-            chrome.runtime.sendMessage({
+            messaging.sendMessage({
                 type: "native_message",
                 data: {
                     cmd: "listen_device",
@@ -46,9 +61,9 @@ let native = {
 }
 
 let tabs = {
-    tabPorts: [],
+    _tabPorts: [],
     midiMessage(midiData) {
-        this.tabPorts.forEach((tabPort) => {
+        this._tabPorts.forEach((tabPort) => {
             tabPort.postMessage({
                 type: "midi_message",
                 message: midiData
@@ -56,14 +71,14 @@ let tabs = {
         });
     },
     add(tabPort) {
-        this.tabPorts.push(tabPort);
+        this._tabPorts.push(tabPort);
     },
     remove(tabPort) {
-        this.tabPorts.splice(tabPorts.indexOf(tabPort), 1);
+        this._tabPorts.splice(_tabPorts.indexOf(tabPort), 1);
     },
     count() {
-        return this.tabPorts.length;
+        return this._tabPorts.length;
     }
 };
 
-export { storage, native, tabs };
+export {messaging, storage, native, tabs};

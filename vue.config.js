@@ -9,28 +9,23 @@ module.exports = {
     },
     runtimeCompiler: true,
     chainWebpack: (config) => {
-        config.entry('background')
-            .add('./src/background/main.js');
+        config
+            .entry('background').add('./src/background/main.js').end()
+            .entry('content').add('./src/content/main.js').add('./src/content/main.scss').end()
+            .entry('inject').add('./src/inject/main.js');
 
-        config.module.rules
-            .delete('eslint');
+        config.module.rules.delete('eslint');
 
         config.output
             .filename("js/[name].js")
             .chunkFilename("js/[name].js");
 
-        config.optimization
-            .delete('splitChunks');
+        config.performance.hints(false);
 
-        config.optimization
-            .minimize(false);
-        //     .splitChunks({
-        //          chunks: function(chunk) {
-        //              // TODO: ...
-        //         }
-        //     });
+        config.optimization.delete('splitChunks');
 
-        // config.resolve.alias
-        //     .set('vue$', 'vue/dist/vue.runtime.esm.js');
+        if (process.env.NODE_ENV === "development") {
+            config.devtool("source-map");
+        }
     },
 }

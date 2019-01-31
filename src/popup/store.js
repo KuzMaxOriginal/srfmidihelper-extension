@@ -1,7 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import constants from "./constants.js";
+import constants from "./constants";
+import router from "./router";
 import { storage, native } from "../common";
 
 Vue.use(Vuex);
@@ -21,8 +22,12 @@ export default new Vuex.Store({
             storage.update({deviceSelected: deviceSelected});
         },
         [constants.SET_VALUES_FROM_STORAGE] (state, storageValues) {
-            for (key in storageValues) {
+            for (let key in storageValues) {
                 state[key] = storageValues[key];
+            }
+
+            if (state.connectedToHost && router.currentRoute.name === "loading") {
+                router.push({name: "select-device"});
             }
         }
     },
