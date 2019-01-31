@@ -3,44 +3,70 @@ import Vuex from "vuex";
 
 import constants from "./constants";
 import router from "./router";
-import { storage, native } from "../common";
+import {storage, native} from "../common";
 
 Vue.use(Vuex);
 
+function calculateRoute(state) {
+    let finalRoute = null;
+
+    if (!state.isSheetGenerated) {
+        finalRoute = "no-sheets-yet";
+    } else if (state.isSheetGenerated && router.currentRoute.name === "no-sheets-yet") {
+        finalRoute = "select-device";
+    } else if (!state.isConnectedToHost) {
+        finalRoute = "loading";
+    } else if (state.isConnectedToHost && router.currentRoute.name === "loading") {
+        finalRoute = "select-device";
+    }
+
+    if (finalRoute !== null) {
+        router.push({name: finalRoute});
+    }
+}
+
 export default new Vuex.Store({
     state: {
-    	deviceList: [],
-        deviceSelected: null
+        deviceList: [],
+        deviceSelected: null,
+        isConnectedToHost: false,
+        isSheetGenerated: false
     },
     mutations: {
-        [constants.SET_DEVICE_LIST] (state, deviceList) {
-        	state.deviceList = deviceList;
+        [constants.SET_DEVICE_LIST](state, deviceList) {
+            state.deviceList = deviceList;
             storage.update({deviceList: deviceList});
         },
-        [constants.SET_DEVICE_SELECTED] (state, deviceSelected) {
+        [constants.SET_DEVICE_SELECTED](state, deviceSelected) {
             state.deviceSelected = deviceSelected;
             storage.update({deviceSelected: deviceSelected});
         },
-        [constants.SET_VALUES_FROM_STORAGE] (state, storageValues) {
+        [constants.SET_VALUES_FROM_STORAGE](state, storageValues) {
             for (let key in storageValues) {
-                state[key] = storageValues[key];
+                if (state.hasOwnProperty(key)) {
+                    state[key] = storageValues[key];
+                }
+
             }
 
-            if (state.connectedToHost && router.currentRoute.name === "loading") {
-                router.push({name: "select-device"});
-            }
+            calculateRoute(state);
         }
     },
     actions: {
-        [constants.SYNC_STORAGE] (context) {
-            storage.get(["deviceList", "deviceSelected"], (result) => {
+        [constants.SYNC_STORAGE](context) {
+            storage.get([
+                "deviceList",
+                "deviceSelected",
+                "isSheetGenerated",
+                "isConnectedToHost"
+            ], (result) => {
                 context.commit(constants.SET_VALUES_FROM_STORAGE, result);
             });
         },
-        [constants.UPDATE_DEVICE_LIST] (context) {
+        [constants.UPDATE_DEVICE_LIST](context) {
             native.listDevices();
         },
-        [constants.SELECT_DEVICE] (context) {
+        [constants.SELECT_DEVICE](context) {
             native.listenDevice();
         }
     }

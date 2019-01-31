@@ -3,6 +3,7 @@ import Router from "vue-router";
 
 import SelectDevice from "./views/SelectDevice.vue";
 import Loading from "./views/Loading"
+import NoSheetsYet from "./views/NoSheetsYet";
 
 Vue.use(Router);
 
@@ -18,6 +19,11 @@ export default new Router({
             path: "/loading",
             name: "loading",
             component: Loading
+        },
+        {
+            path: "/no-sheets-yet",
+            name: "no-sheets-yet",
+            component: NoSheetsYet
         }
     ]
 });

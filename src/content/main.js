@@ -6,7 +6,7 @@ import {
     generateIndexedPitches
 } from "./core";
 
-injectJS(chrome.extension.getURL('inject.js'));
+injectJS(chrome.extension.getURL('js/inject.js'));
 initTabPort();
 generateIndexedPitches();
 initXHRResponseHandler();

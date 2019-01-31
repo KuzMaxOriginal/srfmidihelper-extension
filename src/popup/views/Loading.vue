@@ -1,22 +1,16 @@
 <template>
     <div id="loading">
-        <span>Loading...</span>
+        <message-screen>Loading...</message-screen>
     </div>
 </template>
 
 <script>
-export default {
-    name: "loading",
-};
-</script>
+    import MessageScreen from "../components/MessageScreen";
 
-<style lang="scss">
-    #loading {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-    }
-</style>
+    export default {
+        name: "loading",
+        components: {
+            MessageScreen
+        },
+    };
+</script>

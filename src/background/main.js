@@ -21,7 +21,7 @@ let initNativePort = function () {
     nativePort.onMessage.addListener(function (msg) {
         switch (msg.type) {
             case "pong":
-                storage.update({connectedToHost: true});
+                storage.update({isConnectedToHost: true});
                 console.log("Successfully connected to host");
                 break;
             case "devices_list":
@@ -47,8 +47,8 @@ let initNativePort = function () {
         nativePortConnected = false;
 
         storage.update({
-            connectedToHost: false,
-            // isSheetGenerated: false
+            isConnectedToHost: false,
+            isSheetGenerated: false
         });
 
         console.log("Failed to connect the host: " + chrome.runtime.lastError.message);
@@ -86,8 +86,8 @@ chrome.runtime.onConnect.addListener(function (tabPort) {
             nativePortConnected = false;
 
             storage.update({
-                connectedToHost: false,
-                // isSheetGenerated: false
+                isConnectedToHost: false,
+                isSheetGenerated: false
             });
 
             console.log("Disconnected from host");
@@ -96,8 +96,7 @@ chrome.runtime.onConnect.addListener(function (tabPort) {
 });
 
 storage.update({
-    connectedToHost: false,
-    // showRuntimeScreen: false,
+    isConnectedToHost: false,
     isSheetGenerated: false,
     deviceSelected: null,
     deviceList: []

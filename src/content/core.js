@@ -24,19 +24,12 @@ export function initTabPort() {
                         store.state.commit(constants.store.INCREMENT_CURRENT_NOTE);
                     } else {
                         store.state.commit(constants.store.ADD_PRESSED_PITCH, msg.message.data1);
-                        // midiPressedPitches.push(msg.message.data1);
-
-                        // let requiredPitches = pitchIndexed[state.currentNoteIndex].pitches;
-                        // let equalSets = $(requiredPitches).not(midiPressedPitches).get().length === 0
-                        //     && $(midiPressedPitches).not(requiredPitches).get().length === 0;
 
                         if (store.getters.isEveryRequiredPitchPressed) {
 
                             // Handle the situation when legato style is playing and holding more than one note
                             store.state.commit(constants.store.RESET_PRESSED_PITCHES);
-                            // midiPressedPitches = [];
 
-                            // if (pitchIndexed.length <= state.currentNoteIndex + 1) {
                             if (store.getters.isCurrentNoteOutOfIndex) {
                                 showDialog("Congratulations!", "You've reached the end of the piano piece! Errors: "
                                     + store.state.wrongNotesCount + ".");
@@ -53,7 +46,6 @@ export function initTabPort() {
                         }
                     }
                 } else if (msg.message.status === 8) {
-                    // midiPressedPitches.splice(midiPressedPitches.indexOf(msg.message.data1), 1);
                     store.state.commit(constants.store.REMOVE_DRAWN_NOTE, msg.message.data1);
                     store.state.commit(constants.store.REMOVE_PRESSED_PITCH, msg.message.data1);
                 }
