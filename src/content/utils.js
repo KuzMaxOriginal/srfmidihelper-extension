@@ -9,6 +9,17 @@ export function makeSVG(tag, attrs) {
     return el;
 }
 
+export function addTextToElement(text, element) {
+    let splittedText = text.split("\n");
+
+    for (let i = 0; i < splittedText.length - 1; i++) {
+        element.appendChild(document.createTextNode(splittedText[i]));
+        element.appendChild(document.createElement("br"));
+    }
+
+    element.appendChild(document.createTextNode(splittedText[splittedText.length - 1]));
+}
+
 export function showDialog(title, message) {
     let dialogElement = document.createElement("div"),
         dialogTitleElement = document.createElement("div"),
@@ -25,17 +36,17 @@ export function showDialog(title, message) {
     // Dialog title
 
     dialogTitleElement.className = "srfmh-dialog-title";
-    dialogTitleElement.appendChild(document.createTextNode(title));
+    addTextToElement(title, dialogTitleElement);
 
     // Dialog body
 
     dialogBodyElement.className = "srfmh-dialog-body";
-    dialogBodyElement.appendChild(document.createTextNode(message));
+    addTextToElement(message, dialogBodyElement);
 
     // Dialog buttons panel
 
     dialogPanelCloseButtonElement.className = "srfmh-dialog-panel-button";
-    dialogPanelCloseButtonElement.appendChild(document.createTextNode("Close"));
+    addTextToElement("Close", dialogPanelCloseButtonElement);
     dialogPanelCloseButtonElement.onclick = () => {
         closeDialog();
     };
@@ -48,6 +59,7 @@ export function showDialog(title, message) {
     dialogElement.className = "srfmh-dialog";
     dialogElement.appendChild(dialogTitleElement);
     dialogElement.appendChild(dialogBodyElement);
+    dialogElement.appendChild(dialogPanelElement);
     document.body.appendChild(dialogElement);
 
     // Overlay
@@ -55,19 +67,10 @@ export function showDialog(title, message) {
     overlayElement.className = "srfmh-overlay";
     document.body.appendChild(overlayElement);
 
-    // Close on C4 'note on' function
-
-    port.onMessage.addListener(function closeOnC4Listener(msg) {
-        if (msg.type === "midi_message"
-            && msg.message.status === 9
-            && msg.message.data1 === 60) {
-
-            closeDialog();
-            port.onMessage.removeListener(closeOnC4Listener);
-        }
-    });
-
-    return dialogElement;
+    return {
+        el: dialogElement,
+        close: closeDialog
+    };
 }
 
 export function abcjsPitchDuration(noteNode) {

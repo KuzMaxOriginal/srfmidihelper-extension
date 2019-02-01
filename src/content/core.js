@@ -20,34 +20,43 @@ export function initTabPort() {
                     return;
 
                 if (msg.message.status === 9) {
-                    if (store.state.currentNoteIndex === -1) {
-                        store.state.commit(constants.store.INCREMENT_CURRENT_NOTE);
+
+                    // Close opened dialog on C4 note
+                    if (store.getters.isDialogOpened) {
+                        if (msg.message.data1 === 60) {
+                            store.commit(constants.store.CLOSE_DIALOG);
+                        }
+                    } else if (store.state.currentNoteIndex === -1) {
+                        store.commit(constants.store.INCREMENT_CURRENT_NOTE);
                     } else {
-                        store.state.commit(constants.store.ADD_PRESSED_PITCH, msg.message.data1);
+                        store.commit(constants.store.ADD_PRESSED_PITCH, msg.message.data1);
 
                         if (store.getters.isEveryRequiredPitchPressed) {
 
                             // Handle the situation when legato style is playing and holding more than one note
-                            store.state.commit(constants.store.RESET_PRESSED_PITCHES);
+                            store.commit(constants.store.RESET_PRESSED_PITCHES);
 
-                            if (store.getters.isCurrentNoteOutOfIndex) {
-                                showDialog("Congratulations!", "You've reached the end of the piano piece! Errors: "
-                                    + store.state.wrongNotesCount + ".");
-                                store.state.commit(constants.store.RESET_CURRENT_NOTE);
-                                store.state.commit(constants.store.RESET_WRONG_NOTES_COUNT);
+                            if (store.getters.isNextNoteOutOfIndex) {
+                                store.commit(constants.store.RESET_CURRENT_NOTE);
+                                store.commit(constants.store.RESET_WRONG_NOTES_COUNT);
+
+                                store.commit(constants.store.SET_DIALOG,
+                                    showDialog("Congratulations!",
+                                    "You've reached the end of the piano piece!"
+                                    + "\n\nErrors: " + store.state.wrongNotesCount + "."));
                             } else {
-                                state.currentNoteIndex++;
+                                store.commit(constants.store.INCREMENT_CURRENT_NOTE);
                             }
                         } else {
-                            if (store.getters.isNoteWrong(msg.message.data1)) {
-                                store.state.commit(constants.store.INCREMENT_WRONG_NOTES_COUNT);
-                                store.state.commit(constants.store.ADD_DRAWN_NOTE, msg.message.data1);
+                            if (store.getters.isPitchWrong(msg.message.data1)) {
+                                store.commit(constants.store.INCREMENT_WRONG_NOTES_COUNT);
+                                store.commit(constants.store.ADD_DRAWN_NOTE, msg.message.data1);
                             }
                         }
                     }
                 } else if (msg.message.status === 8) {
-                    store.state.commit(constants.store.REMOVE_DRAWN_NOTE, msg.message.data1);
-                    store.state.commit(constants.store.REMOVE_PRESSED_PITCH, msg.message.data1);
+                    store.commit(constants.store.REMOVE_DRAWN_NOTE, msg.message.data1);
+                    store.commit(constants.store.REMOVE_PRESSED_PITCH, msg.message.data1);
                 }
             });
         }
@@ -71,7 +80,9 @@ export function repaintSVG() {
         value.setAttribute("fill", constants.svg.noteFillHighlighted);
     });
 
-    rootSvgElement.querySelector('.srfmh-wrong_note').remove();
+    // Remove previous drawn notes and lines
+    rootSvgElement.querySelectorAll('.srfmh-wrong_note').remove();
+
     store.state.drawnNotes.forEach(function (drawingNote) {
 
         // Set up note, which will be used as relative pitch for drawing the note
@@ -139,12 +150,12 @@ export function repaintSVG() {
         if (alteratedIncrement === 1) {
             noteY -= 3.875 * 2 - 1;
             noteX -= 10.61;
-            notePath = "m " + noteX + " " + noteY + constants.wrongNoteSharpPath
-                + "m 10.93999999999994 -3.509999999999991" + constants.wrongNotePath;
+            notePath = "m " + noteX + " " + noteY + constants.svg.wrongNoteSharpPath
+                + "m 10.93999999999994 -3.509999999999991" + constants.svg.wrongNotePath;
         } else if (alteratedIncrement === -1) {
             // TODO: draw flat
         } else {
-            notePath = "m " + noteX + " " + noteY + constants.wrongNotePath;
+            notePath = "m " + noteX + " " + noteY + constants.svg.wrongNotePath;
         }
 
         let noteElement = makeSVG('path', {
@@ -163,14 +174,14 @@ export function generateIndexedPitches() {
     function makeDurationArray(elements, durationArray) {
         let currentTime = 0;
 
-        elements.forEach(function () {
-            let noteDuration = abcjsPitchDuration(this) * 1e6;
+        elements.forEach(function (noteNode) {
+            let noteDuration = abcjsPitchDuration(noteNode) * 1e6;
 
-            if (this.classList.contains("abcjs-note")) {
-                let notePithces = abcjsGetMidiPitches(this, store.getters.getKeySignature);
+            if (noteNode.classList.contains("abcjs-note")) {
+                let notePithces = abcjsGetMidiPitches(noteNode, store.getters.getKeySignature);
 
                 durationArray.push({
-                    noteNode: this,
+                    noteNode: noteNode,
                     pitches: notePithces,
                     time: currentTime
                 });
@@ -213,7 +224,7 @@ export function generateIndexedPitches() {
         prevTime = value.time;
     });
 
-    store.commit(constants.store.FIRST_CURRENT_NOTE);
+    store.commit(constants.store.RESET_CURRENT_NOTE);
     store.commit(constants.store.SET_INDEXED_PITHCES, indexedPitches);
 }
 
@@ -227,11 +238,9 @@ export function initXHRResponseHandler() {
 
             parsedStaff.forEach(function (line) {
                 if (line.startsWith("K:")) {
-                    selectedKeySignature = line.slice(2).trim();
+                    store.commit(constants.store.SET_KEY_SIGNATURE, line.slice(2).trim());
                 }
             });
-
-            storage.update({isSheetGenerated: true});
 
             setTimeout(function () {
                 generateIndexedPitches();

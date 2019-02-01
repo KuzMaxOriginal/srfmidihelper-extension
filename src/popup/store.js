@@ -8,7 +8,7 @@ import {storage, native} from "../common";
 Vue.use(Vuex);
 
 function calculateRoute(state) {
-    let finalRoute = null;
+    let finalRoute = router.currentRoute.name;
 
     if (!state.isSheetGenerated) {
         finalRoute = "no-sheets-yet";
@@ -20,7 +20,9 @@ function calculateRoute(state) {
         finalRoute = "select-device";
     }
 
-    if (finalRoute !== null) {
+    console.log(finalRoute, state);
+
+    if (finalRoute !== router.currentRoute.name) {
         router.push({name: finalRoute});
     }
 }

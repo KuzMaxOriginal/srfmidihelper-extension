@@ -13,7 +13,8 @@ export default new Vuex.Store({
         drawnNotes: [],
         indexedPitches: [],
         midiPressedPitches: [],
-        selectedKeySignature: null
+        selectedKeySignature: null,
+        dialog: null
     },
     mutations: {
         [constants.store.INCREMENT_CURRENT_NOTE](state) {
@@ -21,10 +22,6 @@ export default new Vuex.Store({
             repaintSVG();
         },
         [constants.store.RESET_CURRENT_NOTE](state) {
-            state.currentNoteIndex = -1;
-            repaintSVG();
-        },
-        [constants.store.FIRST_CURRENT_NOTE](state) {
             state.currentNoteIndex = 0;
             repaintSVG();
         },
@@ -59,6 +56,16 @@ export default new Vuex.Store({
         },
         [constants.store.RESET_WRONG_NOTES_COUNT](state) {
             state.wrongNotesCount = 0;
+        },
+        [constants.store.SET_KEY_SIGNATURE](state, keySignature) {
+            state.selectedKeySignature = keySignature;
+        },
+        [constants.store.SET_DIALOG] (state, dialog) {
+            state.dialog = dialog;
+        },
+        [constants.store.CLOSE_DIALOG] (state) {
+            state.dialog.close();
+            state.dialog = null;
         }
     },
     getters: {
@@ -72,14 +79,17 @@ export default new Vuex.Store({
             return getters.getRequiredPitches.diff(state.midiPressedPitches).length === 0
                 && state.midiPressedPitches.diff(getters.getRequiredPitches).length === 0;
         },
-        isCurrentNoteOutOfIndex: state => {
-            return state.currentNoteIndex >= state.indexedPitches.length;
+        isNextNoteOutOfIndex: state => {
+            return state.currentNoteIndex + 1 >= state.indexedPitches.length;
         },
         isPitchWrong: (state, getters) => pitch => {
             return getters.getRequiredPitches.indexOf(pitch) === -1;
         },
         getKeySignature: state => {
             return constants.keySignatures[state.selectedKeySignature];
+        },
+        isDialogOpened: state => {
+            return state.dialog !== null;
         }
     }
 });
