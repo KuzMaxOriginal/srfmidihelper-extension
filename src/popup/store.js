@@ -70,6 +70,7 @@ export default new Vuex.Store({
         },
         [constants.SELECT_DEVICE](context) {
             native.listenDevice();
+            router.push({name: "runtime"});
         }
     }
 });

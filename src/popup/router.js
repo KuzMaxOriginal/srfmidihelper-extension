@@ -1,9 +1,10 @@
 import Vue from "vue";
 import Router from "vue-router";
 
-import SelectDevice from "./views/SelectDevice.vue";
+import Runtime from "./views/Runtime";
 import Loading from "./views/Loading"
 import NoSheetsYet from "./views/NoSheetsYet";
+import SelectDevice from "./views/SelectDevice.vue";
 
 Vue.use(Router);
 
@@ -24,6 +25,11 @@ export default new Router({
             path: "/no-sheets-yet",
             name: "no-sheets-yet",
             component: NoSheetsYet
+        },
+        {
+            path: "/runtime",
+            name: "runtime",
+            component: Runtime
         }
     ]
 });

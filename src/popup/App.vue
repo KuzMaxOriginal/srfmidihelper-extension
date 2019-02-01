@@ -5,11 +5,12 @@
 </template>
 
 <style lang="scss">
+    @import 'reset-css';
+
     body {
         width: 400px;
-    }
-
-    #app {
+        font-size: .875rem;
+        font-family: sans-serif;
         padding: .5rem;
     }
 </style>
