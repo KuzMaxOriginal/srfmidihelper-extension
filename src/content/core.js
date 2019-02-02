@@ -59,6 +59,8 @@ export function initTabPort() {
                     store.commit(constants.store.REMOVE_PRESSED_PITCH, msg.message.data1);
                 }
             });
+        } else if (msg.type === "storage_updated") {
+            store.dispatch(constants.store.SYNC_STORAGE);
         }
     });
 

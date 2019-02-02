@@ -70,6 +70,13 @@ let tabs = {
             });
         });
     },
+    storageUpdated() {
+        this._tabPorts.forEach((tabPort) => {
+           tabPort.postMessage({
+               type: "storage_updated"
+           });
+        });
+    },
     add(tabPort) {
         this._tabPorts.push(tabPort);
     },

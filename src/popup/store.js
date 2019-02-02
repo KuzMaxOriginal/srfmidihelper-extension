@@ -20,8 +20,6 @@ function calculateRoute(state) {
         finalRoute = "select-device";
     }
 
-    console.log(finalRoute, state);
-
     if (finalRoute !== router.currentRoute.name) {
         router.push({name: finalRoute});
     }

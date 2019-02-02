@@ -9,6 +9,8 @@
 </template>
 
 <script>
+    import { storage } from "../../common";
+
     export default {
         name: "runtime-screen",
         methods: {
@@ -16,7 +18,7 @@
                 this.$router.push({name: "select-device"});
             },
             resetNotes() {
-
+                storage.update({currentNoteIndex: 0, wrongNotesCount: 0});
             }
         }
     };

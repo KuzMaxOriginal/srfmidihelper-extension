@@ -1,14 +1,15 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import constants from "./constants.js";
+import constants from "./constants";
 import { repaintSVG } from "./core";
+import {storage} from "../common";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
-        currentNoteIndex: -1,
+        currentNoteIndex: 0,
         wrongNotesCount: 0,
         drawnNotes: [],
         indexedPitches: [],
@@ -32,6 +33,15 @@ export default new Vuex.Store({
         [constants.store.REMOVE_DRAWN_NOTE](state, drawnNote) {
             if (state.drawnNotes.indexOf(drawnNote) !== -1) {
                 state.drawnNotes.splice(state.drawnNotes.indexOf(drawnNote), 1);
+            }
+
+            repaintSVG();
+        },
+        [constants.store.SET_VALUES_FROM_STORAGE](state, storageValues) {
+            for (let key in storageValues) {
+                if (state.hasOwnProperty(key)) {
+                    state[key] = storageValues[key];
+                }
             }
 
             repaintSVG();
@@ -91,5 +101,15 @@ export default new Vuex.Store({
         isDialogOpened: state => {
             return state.dialog !== null;
         }
+    },
+    actions: {
+        [constants.store.SYNC_STORAGE](context) {
+            storage.get([
+                "currentNoteIndex",
+                "wrongNotesCount"
+            ], (result) => {
+                context.commit(constants.store.SET_VALUES_FROM_STORAGE, result);
+            });
+        },
     }
 });

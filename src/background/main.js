@@ -64,6 +64,8 @@ messaging.addMessageHandler(function (request) {
 
         nativePort.postMessage(request.data);
         console.log("Sending native message", request.data);
+    } else if (request.type === "storage_updated") {
+        tabs.storageUpdated();
     }
 });
 
