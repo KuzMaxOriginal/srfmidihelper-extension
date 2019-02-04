@@ -12,7 +12,6 @@ import {
 
 injectJS(chrome.extension.getURL('js/inject.js'));
 initTabPort();
-generateIndexedPitches();
 initXHRResponseHandler();
 
 messaging.sendMessage({

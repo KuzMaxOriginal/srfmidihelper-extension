@@ -2,35 +2,20 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import constants from "./constants";
-import router from "./router";
+import router, {calculateRoute} from "./router";
 import {storage, native} from "../common";
 
 Vue.use(Vuex);
-
-function calculateRoute(state) {
-    let finalRoute = router.currentRoute.name;
-
-    if (!state.isSheetGenerated) {
-        finalRoute = "no-sheets-yet";
-    } else if (state.isSheetGenerated && router.currentRoute.name === "no-sheets-yet") {
-        finalRoute = "select-device";
-    } else if (!state.isConnectedToHost) {
-        finalRoute = "loading";
-    } else if (state.isConnectedToHost && router.currentRoute.name === "loading") {
-        finalRoute = "select-device";
-    }
-
-    if (finalRoute !== router.currentRoute.name) {
-        router.push({name: finalRoute});
-    }
-}
 
 export default new Vuex.Store({
     state: {
         deviceList: [],
         deviceSelected: null,
         isConnectedToHost: false,
-        isSheetGenerated: false
+        isSheetGenerated: false,
+        popupLastRoute: "loading",
+
+        isInitialized: false,
     },
     mutations: {
         [constants.SET_DEVICE_LIST](state, deviceList) {
@@ -48,8 +33,13 @@ export default new Vuex.Store({
                 }
 
             }
-
-            calculateRoute(state);
+        },
+        [constants.SET_LAST_ROUTE](state, routeName) {
+            state.popupLastRoute = routeName;
+            storage.update({popupLastRoute: routeName});
+        },
+        [constants.SET_INITIALIZED](state, initialized) {
+            state.isInitialized = initialized;
         }
     },
     actions: {
@@ -58,9 +48,13 @@ export default new Vuex.Store({
                 "deviceList",
                 "deviceSelected",
                 "isSheetGenerated",
-                "isConnectedToHost"
+                "isConnectedToHost",
+                "popupLastRoute"
             ], (result) => {
                 context.commit(constants.SET_VALUES_FROM_STORAGE, result);
+                calculateRoute(context);
+
+                context.commit(constants.SET_INITIALIZED, true);
             });
         },
         [constants.UPDATE_DEVICE_LIST](context) {
@@ -68,7 +62,14 @@ export default new Vuex.Store({
         },
         [constants.SELECT_DEVICE](context) {
             native.listenDevice();
-            router.push({name: "runtime"});
+            context.dispatch(constants.PUSH_ROUTE, "runtime");
+        },
+        [constants.PUSH_ROUTE](context, routeName) {
+            if (context.state.isInitialized) {
+                context.commit(constants.SET_LAST_ROUTE, routeName);
+            }
+
+            router.push({name: routeName});
         }
     }
 });

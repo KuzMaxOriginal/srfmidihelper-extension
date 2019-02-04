@@ -20,10 +20,12 @@ export default new Vuex.Store({
     mutations: {
         [constants.store.INCREMENT_CURRENT_NOTE](state) {
             state.currentNoteIndex++;
+            storage.update({currentNoteIndex: state.currentNoteIndex});
             repaintSVG();
         },
         [constants.store.RESET_CURRENT_NOTE](state) {
             state.currentNoteIndex = 0;
+            storage.update({currentNoteIndex: state.currentNoteIndex});
             repaintSVG();
         },
         [constants.store.ADD_DRAWN_NOTE](state, drawnNote) {
@@ -63,9 +65,11 @@ export default new Vuex.Store({
         },
         [constants.store.INCREMENT_WRONG_NOTES_COUNT](state) {
             state.wrongNotesCount++;
+            storage.update({wrongNotesCount: state.wrongNotesCount});
         },
         [constants.store.RESET_WRONG_NOTES_COUNT](state) {
             state.wrongNotesCount = 0;
+            storage.update({wrongNotesCount: state.wrongNotesCount});
         },
         [constants.store.SET_KEY_SIGNATURE](state, keySignature) {
             state.selectedKeySignature = keySignature;

@@ -101,5 +101,6 @@ storage.update({
     isConnectedToHost: false,
     isSheetGenerated: false,
     deviceSelected: null,
-    deviceList: []
+    deviceList: [],
+    popupLastRoute: "loading"
 });

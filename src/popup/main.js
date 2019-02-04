@@ -26,4 +26,4 @@ messaging.sendMessage({
     type: "storage_updated"
 });
 
-router.push({name: "loading"});
+store.dispatch(constants.PUSH_ROUTE, "loading");

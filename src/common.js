@@ -81,7 +81,7 @@ let tabs = {
         this._tabPorts.push(tabPort);
     },
     remove(tabPort) {
-        this._tabPorts.splice(_tabPorts.indexOf(tabPort), 1);
+        this._tabPorts.splice(this._tabPorts.indexOf(tabPort), 1);
     },
     count() {
         return this._tabPorts.length;
