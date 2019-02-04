@@ -13,7 +13,14 @@ import {
 export function initTabPort() {
     let port = chrome.runtime.connect();
 
-    port.onMessage.addListener(function (msg) {
+    port.onMessage.addListener(function(msg) {
+        if (msg.type === "storage_updated") {
+            store.dispatch(constants.store.SYNC_STORAGE);
+        }
+    });
+
+    store.commit(constants.store.SET_TAB_PORT, port);
+    store.dispatch(constants.store.SET_RUNTIME_LISTENER, function (msg) {
         if (msg.type === "midi_message") {
             storage.get('isSheetGenerated', function (result) {
                 if (!result.isSheetGenerated)
@@ -37,13 +44,13 @@ export function initTabPort() {
                             store.commit(constants.store.RESET_PRESSED_PITCHES);
 
                             if (store.getters.isNextNoteOutOfIndex) {
-                                store.commit(constants.store.RESET_CURRENT_NOTE);
-                                store.commit(constants.store.RESET_WRONG_NOTES_COUNT);
-
                                 store.commit(constants.store.SET_DIALOG,
                                     showDialog("Congratulations!",
-                                    "You've reached the end of the piano piece!"
-                                    + "\n\nErrors: " + store.state.wrongNotesCount + "."));
+                                        "You've reached the end of the piano piece!"
+                                        + "\n\nErrors: " + store.state.wrongNotesCount + "."));
+
+                                store.commit(constants.store.RESET_CURRENT_NOTE);
+                                store.commit(constants.store.RESET_WRONG_NOTES_COUNT);
                             } else {
                                 store.commit(constants.store.INCREMENT_CURRENT_NOTE);
                             }
@@ -59,31 +66,33 @@ export function initTabPort() {
                     store.commit(constants.store.REMOVE_PRESSED_PITCH, msg.message.data1);
                 }
             });
-        } else if (msg.type === "storage_updated") {
-            store.dispatch(constants.store.SYNC_STORAGE);
         }
     });
-
-    return port;
 }
 
 export function repaintSVG() {
     let rootSvgElement = document.querySelector("#staffDiv svg");
 
-    if (rootSvgElement === null
-        || store.state.currentNoteIndex === -1
-        || store.state.indexedPitches.length === 0)
+    if (rootSvgElement === null)
         return;
-
-    rootSvgElement.querySelectorAll(".abcjs-note")
-        .setAttribute("fill", constants.svg.noteFillDefault);
-
-    store.getters.getRequiredNoteNodes.forEach(function (value) {
-        value.setAttribute("fill", constants.svg.noteFillHighlighted);
-    });
 
     // Remove previous drawn notes and lines
     rootSvgElement.querySelectorAll('.srfmh-wrong_note').remove();
+
+    // Set notes fill to default
+    rootSvgElement.querySelectorAll(".abcjs-note")
+        .setAttribute("fill", constants.svg.noteFillDefault);
+
+    if (store.state.currentNoteIndex === -1
+        || store.state.indexedPitches.length === 0
+        || !store.state.isSwitchedOn)
+        return;
+
+    // Highlight current notes
+
+    store.getters.getRequiredNoteNodes.forEach(function (value) {
+        value.setAttribute("fill", store.state.noteFillHighlighted);
+    });
 
     store.state.drawnNotes.forEach(function (drawingNote) {
 
@@ -134,7 +143,7 @@ export function repaintSVG() {
             let newLinePath = "m " + newLineX + " " + newLineY + constants.svg.newLinePath;
             let newLineElement = makeSVG('path', {
                 d: newLinePath,
-                stroke: constants.svg.noteFillWrong,
+                stroke: store.state.noteFillWrong,
                 fill: 'none',
                 'fill-opacity': constants.svg.noteOpacityWrong,
                 class: 'srfmh-wrong_note srfmh-wrong_note-line'
@@ -163,7 +172,7 @@ export function repaintSVG() {
         let noteElement = makeSVG('path', {
             d: notePath,
             stroke: 'none',
-            fill: constants.svg.noteFillWrong,
+            fill: store.state.noteFillWrong,
             'fill-opacity': constants.svg.noteOpacityWrong,
             class: 'srfmh-wrong_note'
         });
@@ -233,7 +242,7 @@ export function generateIndexedPitches() {
 // XHR response handler for retrieving ABCJS information
 
 export function initXHRResponseHandler() {
-    document.addEventListener('injectXHR', (event) => {
+    store.dispatch(constants.store.SET_INJECT_XHR_LISTENER, (event) => {
         if (event.detail.responseURL.startsWith(constants.appUrl + "/abc")) {
             let parsedResponse = JSON.parse(event.detail.response);
             let parsedStaff = parsedResponse.staff.split("\n");

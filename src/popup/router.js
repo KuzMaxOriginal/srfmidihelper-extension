@@ -5,6 +5,7 @@ import Runtime from "./views/Runtime";
 import Loading from "./views/Loading"
 import NoSheetsYet from "./views/NoSheetsYet";
 import SelectDevice from "./views/SelectDevice.vue";
+import Settings from "./views/Settings";
 import constants from "./constants";
 
 Vue.use(Router);
@@ -16,18 +17,21 @@ export function calculateRoute(context) {
 
     let finalRoute = router.currentRoute.name;
 
-    if (!context.state.isSheetGenerated) {
-        finalRoute = "no-sheets-yet";
-    } else if (context.state.isSheetGenerated && router.currentRoute.name === "no-sheets-yet") {
-        finalRoute = "select-device";
-    } else if (!context.state.isConnectedToHost) {
-        finalRoute = "loading";
-    } else if (context.state.isConnectedToHost && router.currentRoute.name === "loading") {
-        finalRoute = "select-device";
-    }
+    if (["settings"].indexOf(finalRoute) === -1) {
 
-    if (finalRoute !== router.currentRoute.name) {
-        context.dispatch(constants.PUSH_ROUTE, finalRoute);
+        if (!context.state.isSheetGenerated) {
+            finalRoute = "no-sheets-yet";
+        } else if (context.state.isSheetGenerated && router.currentRoute.name === "no-sheets-yet") {
+            finalRoute = "select-device";
+        } else if (!context.state.isConnectedToHost) {
+            finalRoute = "loading";
+        } else if (context.state.isConnectedToHost && router.currentRoute.name === "loading") {
+            finalRoute = "select-device";
+        }
+
+        if (finalRoute !== router.currentRoute.name) {
+            context.dispatch(constants.PUSH_ROUTE, finalRoute);
+        }
     }
 }
 
@@ -53,6 +57,11 @@ let router = new Router({
             path: "/runtime",
             name: "runtime",
             component: Runtime
+        },
+        {
+            path: "/settings",
+            name: "settings",
+            component: Settings
         }
     ]
 });

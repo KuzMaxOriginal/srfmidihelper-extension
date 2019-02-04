@@ -14,8 +14,12 @@ export default new Vuex.Store({
         isConnectedToHost: false,
         isSheetGenerated: false,
         popupLastRoute: "loading",
+        isSwitchedOn: false,
+        noteFillHighlighted: null,
+        noteFillWrong: null,
 
         isInitialized: false,
+        routesHistory: []
     },
     mutations: {
         [constants.SET_DEVICE_LIST](state, deviceList) {
@@ -49,7 +53,10 @@ export default new Vuex.Store({
                 "deviceSelected",
                 "isSheetGenerated",
                 "isConnectedToHost",
-                "popupLastRoute"
+                "popupLastRoute",
+                "isSwitchedOn",
+                "noteFillHighlighted",
+                "noteFillWrong"
             ], (result) => {
                 context.commit(constants.SET_VALUES_FROM_STORAGE, result);
                 calculateRoute(context);
@@ -69,7 +76,17 @@ export default new Vuex.Store({
                 context.commit(constants.SET_LAST_ROUTE, routeName);
             }
 
-            router.push({name: routeName});
+            if (router.currentRoute.name !== routeName) {
+                router.push({name: routeName});
+                context.state.routesHistory.push(routeName);
+            }
+        }
+    },
+    getters: {
+        lastRoute: state => {
+            return state.routesHistory.length > 1
+                ? state.routesHistory[state.routesHistory.length - 2]
+                : null;
         }
     }
 });

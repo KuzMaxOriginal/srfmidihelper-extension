@@ -1,4 +1,5 @@
 import {messaging, storage, native, tabs} from "../common";
+import constants from "../content/constants";
 
 let nativePort, nativePortConnected = false;
 
@@ -102,5 +103,8 @@ storage.update({
     isSheetGenerated: false,
     deviceSelected: null,
     deviceList: [],
-    popupLastRoute: "loading"
+    popupLastRoute: "loading",
+    isSwitchedOn: true,
+    noteFillHighlighted: constants.svg.noteFillHighlighted,
+    noteFillWrong: constants.svg.noteFillWrong,
 });

@@ -2,8 +2,9 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import constants from "./constants";
-import { repaintSVG } from "./core";
-import {storage} from "../common";
+import {initTabPort, initXHRResponseHandler, repaintSVG} from "./core";
+import {messaging, storage} from "../common";
+import {injectJS} from "./utils";
 
 Vue.use(Vuex);
 
@@ -11,6 +12,14 @@ export default new Vuex.Store({
     state: {
         currentNoteIndex: 0,
         wrongNotesCount: 0,
+        isSwitchedOn: false,
+        noteFillHighlighted: null,
+        noteFillWrong: null,
+
+        tabPort: null,
+        tabPortMessageListener: null,
+        injectXHRListener: null,
+        prevIsSwitchedOn: true,
         drawnNotes: [],
         indexedPitches: [],
         midiPressedPitches: [],
@@ -74,12 +83,27 @@ export default new Vuex.Store({
         [constants.store.SET_KEY_SIGNATURE](state, keySignature) {
             state.selectedKeySignature = keySignature;
         },
-        [constants.store.SET_DIALOG] (state, dialog) {
+        [constants.store.SET_DIALOG](state, dialog) {
             state.dialog = dialog;
         },
-        [constants.store.CLOSE_DIALOG] (state) {
+        [constants.store.CLOSE_DIALOG](state) {
             state.dialog.close();
             state.dialog = null;
+        },
+        [constants.store.SET_IS_SWITCHED_ON](state, isSwitchedOn) {
+            state.isSwitchedOn = isSwitchedOn;
+        },
+        [constants.store.SET_PREV_IS_SWITCHED_ON](state, prevIsSwitchedOn) {
+            state.prevIsSwitchedOn = prevIsSwitchedOn;
+        },
+        [constants.store.SET_TAB_PORT](state, tabPort) {
+            state.tabPort = tabPort;
+        },
+        [constants.store.SET_TAB_PORT_MESSAGE_LISTENER](state, callback) {
+            state.tabPortMessageListener = callback;
+        },
+        [constants.store.SET_INJECT_XHR_LISTENER](state, callback) {
+            state.injectXHRListener = callback;
         }
     },
     getters: {
@@ -107,13 +131,71 @@ export default new Vuex.Store({
         }
     },
     actions: {
+        [constants.store.SWITCH_ON](context) {
+            initTabPort();
+            initXHRResponseHandler();
+
+            messaging.sendMessage({
+                type: "storage_updated"
+            });
+
+            context.commit(constants.store.SET_IS_SWITCHED_ON, true);
+        },
+        [constants.store.SWITCH_OFF](context) {
+            context.dispatch(constants.store.REMOVE_RUNTIME_LISTENER);
+            context.dispatch(constants.store.REMOVE_INJECT_XHR_LISTENER);
+
+            context.commit(constants.store.RESET_CURRENT_NOTE);
+            context.commit(constants.store.RESET_WRONG_NOTES_COUNT);
+
+            context.commit(constants.store.SET_IS_SWITCHED_ON, false);
+
+            repaintSVG();
+        },
         [constants.store.SYNC_STORAGE](context) {
             storage.get([
                 "currentNoteIndex",
-                "wrongNotesCount"
+                "wrongNotesCount",
+                "isSwitchedOn",
+                "noteFillHighlighted",
+                "noteFillWrong"
             ], (result) => {
                 context.commit(constants.store.SET_VALUES_FROM_STORAGE, result);
+
+                if (result.isSwitchedOn !== context.state.prevIsSwitchedOn) {
+                    if (result.isSwitchedOn) {
+                        context.dispatch(constants.store.SWITCH_ON);
+                    } else {
+                        context.dispatch(constants.store.SWITCH_OFF);
+                    }
+
+                    context.commit(constants.store.SET_PREV_IS_SWITCHED_ON, result.isSwitchedOn);
+                }
             });
         },
+
+        [constants.store.SET_RUNTIME_LISTENER](context, callback) {
+            context.dispatch(constants.store.REMOVE_RUNTIME_LISTENER);
+            context.state.tabPort.onMessage.addListener(callback);
+            context.commit(constants.store.SET_TAB_PORT_MESSAGE_LISTENER, callback);
+        },
+        [constants.store.REMOVE_RUNTIME_LISTENER](context) {
+            if (context.state.tabPortMessageListener !== null) {
+                context.state.tabPort.onMessage.removeListener(context.state.tabPortMessageListener);
+                context.commit(constants.store.SET_TAB_PORT_MESSAGE_LISTENER, null);
+            }
+        },
+
+        [constants.store.SET_INJECT_XHR_LISTENER](context, callback) {
+            context.dispatch(constants.store.REMOVE_INJECT_XHR_LISTENER);
+            document.addEventListener('injectXHR', callback);
+            context.commit(constants.store.SET_INJECT_XHR_LISTENER, callback);
+        },
+        [constants.store.REMOVE_INJECT_XHR_LISTENER](context) {
+            if (context.state.injectXHRListener !== null) {
+                document.removeEventListener('injectXHR', context.state.injectXHRListener);
+                context.commit(constants.store.SET_INJECT_XHR_LISTENER, null);
+            }
+        }
     }
 });
