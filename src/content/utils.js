@@ -86,30 +86,13 @@ export function abcjsPitchDuration(noteNode) {
 }
 
 export function abcjsMidiToPitch(midiPitch, keySignature) {
-    let pitchNamesMap = {
-        0: "C", 1: "C",
-        2: "D", 3: "D",
-        4: "E",
-        5: "F", 6: "F",
-        7: "G", 8: "G",
-        9: "A", 10: "A",
-        11: "B"
-    };
-
-    let pitchRawName = pitchNamesMap[midiPitch % 12];
-
     let pitchMidiToAbcjsMap = {
-        0: 0,
-        1: keySignature.sharp.indexOf(pitchRawName) ? 0 : 1,
-        2: 1,
-        3: keySignature.sharp.indexOf(pitchRawName) ? 1 : 2,
+        0: 0, 1: 0,
+        2: 1, 3: 1,
         4: 2,
-        5: 3,
-        6: keySignature.sharp.indexOf(pitchRawName) ? 3 : 4,
-        7: 4,
-        8: keySignature.sharp.indexOf(pitchRawName) ? 4 : 5,
-        9: 5,
-        10: keySignature.sharp.indexOf(pitchRawName) ? 5 : 6,
+        5: 3, 6: 3,
+        7: 4, 8: 4,
+        9: 5, 10: 5,
         11: 6
     };
 
@@ -146,9 +129,13 @@ export function abcjsGetMidiPitches(noteNode, keySignature) {
     return pitches;
 }
 
+export function naturalMidiIncrement(midiPitch) {
+    return constants.pitchNamesMap[midiPitch % 12].indexOf("#") !== -1 ? 1 : 0;
+}
+
 export function alteratedPitchIncrement(pitch, keySignature) {
     let result = 0;
-    let noteName = constants.pitchNames[(pitch + 11) % 7];
+    let noteName = constants.pitchNames[(pitch + 2) % 7];
 
     keySignature.sharp.forEach(function (value) {
         if (noteName === value) {

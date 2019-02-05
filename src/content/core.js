@@ -7,13 +7,14 @@ import {
     showDialog,
     alteratedPitchIncrement,
     abcjsPitchDuration,
-    abcjsGetMidiPitches
+    abcjsGetMidiPitches,
+    naturalMidiIncrement
 } from "./utils";
 
 export function initTabPort() {
     let port = chrome.runtime.connect();
 
-    port.onMessage.addListener(function(msg) {
+    port.onMessage.addListener(function (msg) {
         if (msg.type === "storage_updated") {
             store.dispatch(constants.store.SYNC_STORAGE);
         }
@@ -94,79 +95,113 @@ export function repaintSVG() {
         value.setAttribute("fill", store.state.noteFillHighlighted);
     });
 
-    store.state.drawnNotes.forEach(function (drawingNote) {
+    // Set up note, which will be used as relative pitch for drawing wrong notes and staff lines
+    // LH = 'Left Hand', RH = 'Right Hand'
 
-        // Set up note, which will be used as relative pitch for drawing the note
-        let relativeNote = store.getters.getRequiredNoteNodes[0];
-        store.getters.getRequiredNoteNodes.forEach(function (noteNode) {
-            if (noteNode.classList.contains("abcjs-v0") && drawingNote >= 60
-                || noteNode.classList.contains("abcjs-v1") && drawingNote < 60) {
-                relativeNote = noteNode;
-            }
-        });
+    let relativeNoteNodeRH = store.getters.getRequiredNoteNodes[0],
+        relativeNoteNodeLH = relativeNoteNodeRH;
 
-        let abcjsPitch = abcjsMidiToPitch(drawingNote, store.getters.getKeySignature);
-        let alteratedIncrement = alteratedPitchIncrement(drawingNote, store.getters.getKeySignature);
-        let splittedCurrentNotePath = relativeNote.getAttribute("d").split(" ");
-        let relativeNoteX = splittedCurrentNotePath[1];
+    store.getters.getRequiredNoteNodes.forEach(function (noteNode) {
+        if (noteNode.classList.contains("abcjs-v0")) {
+            relativeNoteNodeRH = noteNode;
+        } else if (noteNode.classList.contains("abcjs-v1")) {
+            relativeNoteNodeLH = noteNode;
+        }
+    });
+
+    let [relativeNoteRH, relativeNoteLH] = [relativeNoteNodeRH, relativeNoteNodeLH].map((relativeNoteNode) => {
+        let splittedCurrentNotePath = relativeNoteNode.getAttribute("d").split(" ");
+        let relativeNoteX = parseFloat(splittedCurrentNotePath[1]);
         let relativeNoteY = parseFloat(splittedCurrentNotePath[2].slice(0, splittedCurrentNotePath[2].length - 1)); // remove 'c' at the end
+        let containsDot = relativeNoteNode.getAttribute("d").indexOf(constants.svg.dotPath) !== -1;
 
         let relativePitchIndex;
-        for (let i = 0; i < relativeNote.classList.length; i++) {
-            if (relativeNote.classList[i].startsWith('abcjs-p')) {
-                relativePitchIndex = parseInt(relativeNote.classList[i].slice(7));
+        for (let i = 0; i < relativeNoteNode.classList.length; i++) {
+            if (relativeNoteNode.classList[i].startsWith('abcjs-p')) {
+                relativePitchIndex = parseInt(relativeNoteNode.classList[i].slice(7));
                 break;
             }
         }
 
-        // Draw new lines (if needed)
+        if (containsDot) {
+            relativeNoteY -= 2.37;
+        }
 
-        let isRightHand = relativeNote.classList.contains("abcjs-v0");
+        return {
+            noteNode: relativeNoteNode,
+            noteX: relativeNoteX,
+            noteY: relativeNoteY,
+            pitch: relativePitchIndex
+        };
+    });
+
+    // Draw wrong notes
+
+    let newLines = {
+        upRH: 0,
+        downRH: 0,
+        upLH: 0,
+        downLH: 0
+    };
+
+    store.state.drawnNotes.forEach(function (drawingNote) {
+        let abcjsPitch = abcjsMidiToPitch(drawingNote, store.getters.getKeySignature);
+        let naturalIncrement = naturalMidiIncrement(drawingNote);
+        let alteratedIncrement = alteratedPitchIncrement(abcjsPitch, store.getters.getKeySignature);
+        let isRightHand = relativeNoteRH.noteNode === relativeNoteLH.noteNode
+            ? relativeNoteRH.noteNode.classList.contains("abcjs-v0") : drawingNote >= 60;
+
+        // Add information about drawing lines
 
         let newLinesDirectionUp = isRightHand
             ? abcjsPitch > 10
             : abcjsPitch > -2;
 
-        let newLinesCount = Math.floor(isRightHand
+        let newLinesCount = Math.floor((isRightHand
             ? Math.max(2 + abcjsPitch * (-1), abcjsPitch - 10)
-            : Math.max(2 + abcjsPitch, abcjsPitch * (-1) - 10) / 2);
+            : Math.max(2 + abcjsPitch, abcjsPitch * (-1) - 10)) / 2);
 
-        let newLineX = relativeNoteX - 10;
-        let newLinesOffsetY = relativeNoteY
-            + 3.875 * (1 + (newLinesDirectionUp ? -2 : 2) + (isRightHand
-                ? (newLinesDirectionUp ? relativePitchIndex - 10 : relativePitchIndex - 2)
-                : (newLinesDirectionUp ? relativePitchIndex + 2 : relativePitchIndex + 10)));
-
-        for (let i = 0; i < newLinesCount; i++) {
-            let newLineY = newLinesOffsetY + (newLinesDirectionUp ? -3.875 * 2 * i : 3.875 * 2 * i);
-
-            let newLinePath = "m " + newLineX + " " + newLineY + constants.svg.newLinePath;
-            let newLineElement = makeSVG('path', {
-                d: newLinePath,
-                stroke: store.state.noteFillWrong,
-                fill: 'none',
-                'fill-opacity': constants.svg.noteOpacityWrong,
-                class: 'srfmh-wrong_note srfmh-wrong_note-line'
-            });
-
-            rootSvgElement.appendChild(newLineElement);
+        if (isRightHand) {
+            if (newLinesDirectionUp) {
+                newLines.upRH = Math.max(newLines.upRH, newLinesCount);
+            } else {
+                newLines.downRH = Math.max(newLines.downRH, newLinesCount);
+            }
+        } else {
+            if (newLinesDirectionUp) {
+                newLines.upLH = Math.max(newLines.upLH, newLinesCount);
+            } else {
+                newLines.downLH = Math.max(newLines.downLH, newLinesCount);
+            }
         }
 
         // Draw note
 
         let notePath;
-        let noteX = relativeNoteX;
-        let noteY = relativeNoteY - 3.875 * (abcjsPitch - relativePitchIndex);
+        let noteX = isRightHand ? relativeNoteRH.noteX : relativeNoteLH.noteX;
+        let noteY = isRightHand
+            ? relativeNoteRH.noteY - 3.875 * (abcjsPitch - relativeNoteRH.pitch)
+            : relativeNoteLH.noteY - 3.875 * (abcjsPitch - relativeNoteLH.pitch);
 
-        if (alteratedIncrement === 1) {
+        if (alteratedIncrement === naturalIncrement) {
+
+            // Draw simple note
+            notePath = "m " + noteX + " " + noteY + constants.svg.wrongNotePath;
+
+        } else if (naturalIncrement === 0) {
+
+            // Draw 'natural'
+            noteY -= 3.875 * 2 - 1;
+            noteX -= 13.61;
+            notePath = "m " + noteX + " " + noteY + constants.svg.wrongNoteNaturalPath
+                + "m 10.879999999999995 -1.0500000000000114" + constants.svg.wrongNotePath;
+        } else {
+
+            // Draw 'sharp'
             noteY -= 3.875 * 2 - 1;
             noteX -= 10.61;
             notePath = "m " + noteX + " " + noteY + constants.svg.wrongNoteSharpPath
                 + "m 10.93999999999994 -3.509999999999991" + constants.svg.wrongNotePath;
-        } else if (alteratedIncrement === -1) {
-            // TODO: draw flat
-        } else {
-            notePath = "m " + noteX + " " + noteY + constants.svg.wrongNotePath;
         }
 
         let noteElement = makeSVG('path', {
@@ -179,6 +214,49 @@ export function repaintSVG() {
 
         rootSvgElement.appendChild(noteElement);
     });
+
+    // Draw new lines (if needed)
+
+    function drawNewLine(newLineX, newLineY) {
+        let newLinePath = "m " + newLineX + " " + newLineY + constants.svg.newLinePath;
+        let newLineElement = makeSVG('path', {
+            d: newLinePath,
+            stroke: store.state.noteFillWrong,
+            fill: 'none',
+            'fill-opacity': constants.svg.noteOpacityWrong,
+            class: 'srfmh-wrong_note srfmh-wrong_note-line'
+        });
+
+        rootSvgElement.appendChild(newLineElement);
+    }
+
+    let newLineX = relativeNoteRH.noteX - 10;
+
+    // Right hand new lines
+
+    let newLinesOffsetUpRH = relativeNoteRH.noteY + 3.875 * (relativeNoteRH.pitch - 11);
+    let newLinesOffsetDownRH = relativeNoteRH.noteY + 3.875 * (relativeNoteRH.pitch + 1);
+
+    for (let i = 0; i < newLines.upRH; i++) {
+        drawNewLine(newLineX, newLinesOffsetUpRH - 3.875 * 2 * i);
+    }
+
+    for (let i = 0; i < newLines.downRH; i++) {
+        drawNewLine(newLineX, newLinesOffsetDownRH + 3.875 * 2 * i);
+    }
+
+    // Left hand new lines
+
+    let newLinesOffsetUpLH = relativeNoteRH.noteY + 3.875 * (relativeNoteLH.pitch + 1);
+    let newLinesOffsetDownLH = relativeNoteRH.noteY + 3.875 * (relativeNoteLH.pitch + 13);
+
+    for (let i = 0; i < newLines.upLH; i++) {
+        drawNewLine(newLineX, newLinesOffsetUpLH - 3.875 * 2 * i);
+    }
+
+    for (let i = 0; i < newLines.downLH; i++) {
+        drawNewLine(newLineX, newLinesOffsetDownLH + 3.875 * 2 * i);
+    }
 }
 
 export function generateIndexedPitches() {
