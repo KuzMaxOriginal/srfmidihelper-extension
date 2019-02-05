@@ -20,18 +20,13 @@ export function addTextToElement(text, element) {
     element.appendChild(document.createTextNode(splittedText[splittedText.length - 1]));
 }
 
-export function showDialog(title, message) {
+export function showDialog(title, message, closeBtn, closeCallback) {
     let dialogElement = document.createElement("div"),
         dialogTitleElement = document.createElement("div"),
         dialogBodyElement = document.createElement("div"),
         dialogPanelCloseButtonElement = document.createElement("button"),
         dialogPanelElement = document.createElement("div"),
         overlayElement = document.createElement("div");
-
-    function closeDialog() {
-        dialogElement.remove();
-        overlayElement.remove();
-    }
 
     // Dialog title
 
@@ -46,10 +41,8 @@ export function showDialog(title, message) {
     // Dialog buttons panel
 
     dialogPanelCloseButtonElement.className = "srfmh-dialog-panel-button";
-    addTextToElement("Close", dialogPanelCloseButtonElement);
-    dialogPanelCloseButtonElement.onclick = () => {
-        closeDialog();
-    };
+    addTextToElement(closeBtn, dialogPanelCloseButtonElement);
+    dialogPanelCloseButtonElement.onclick = closeCallback;
 
     dialogPanelElement.className = "srfmh-dialog-panel";
     dialogPanelElement.appendChild(dialogPanelCloseButtonElement);
@@ -69,7 +62,10 @@ export function showDialog(title, message) {
 
     return {
         el: dialogElement,
-        close: closeDialog
+        close() {
+            dialogElement.remove();
+            overlayElement.remove();
+        }
     };
 }
 

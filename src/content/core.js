@@ -48,7 +48,10 @@ export function initTabPort() {
                                 store.commit(constants.store.SET_DIALOG,
                                     showDialog("Congratulations!",
                                         "You've reached the end of the piano piece!"
-                                        + "\n\nErrors: " + store.state.wrongNotesCount + "."));
+                                        + "\n\nErrors: " + store.state.wrongNotesCount + ".",
+                                        "Close (C4)", () => {
+                                            store.commit(constants.store.CLOSE_DIALOG);
+                                        }));
 
                                 store.commit(constants.store.RESET_CURRENT_NOTE);
                                 store.commit(constants.store.RESET_WRONG_NOTES_COUNT);
