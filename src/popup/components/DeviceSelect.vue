@@ -6,10 +6,10 @@
                   placeholder="-- Select device --"
                   @input="setDeviceSelected">
         </v-select>
-        <button class="button-refresh" @click="updateDeviceList">
+        <button class="button button-refresh" @click="updateDeviceList">
             <i class="fa fa-refresh" aria-hidden="true"></i>
         </button>
-        <button class="button-select" @click="selectDevice">Select device</button>
+        <button class="button button-select" @click="selectDevice">Select device</button>
     </div>
 </template>
 
@@ -58,6 +58,12 @@
         .button-select {
             flex-basis: 100%;
             margin-top: .5rem;
+        }
+    }
+
+    .v-select {
+        .dropdown-toggle {
+            height: 34px;
         }
     }
 </style>

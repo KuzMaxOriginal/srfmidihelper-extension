@@ -38,7 +38,8 @@
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: .5rem;
+        padding: .5rem 3rem;
+        margin-top: -1.125rem;
 
         span {
             display: block;

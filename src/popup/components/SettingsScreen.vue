@@ -10,7 +10,7 @@
             <div class="settings-param">
                 <span class="settings-param-name">Current Note Color</span>
                 <div class="settings-param-value settings-param-color">
-                    <button class="settings-param-color-button"
+                    <button class="button settings-param-color-button"
                             :value="noteFillHighlighted"
                             :style="{'background-color': noteFillHighlighted}"
                             @click="displayPickerNoteHighlighted = true"></button>
@@ -21,7 +21,7 @@
             <div class="settings-param">
                 <span class="settings-param-name">Wrong Note Color</span>
                 <div class="settings-param-value settings-param-color">
-                    <button class="settings-param-color-button"
+                    <button class="button settings-param-color-button"
                             :value="noteFillWrong"
                             :style="{'background-color': noteFillWrong}"
                             @click="displayPickerNoteWrong = true"></button>
@@ -30,7 +30,7 @@
                 </div>
             </div>
         </div>
-        <button class="back-btn" @click="goBack">
+        <button class="button back-btn" @click="goBack">
             OK
         </button>
     </div>
@@ -101,43 +101,49 @@
 </script>
 
 <style lang="scss">
-    .settings {
-        display: table;
-        table-layout: fixed;
+    .settings-root {
+        padding: .25rem .5rem;
 
-        .settings-param {
-            display: table-row;
+        .settings {
+            display: table;
+            table-layout: fixed;
 
-            .settings-param-name {
-                display: table-cell;
-                padding-right: 3rem;
-                padding-bottom: .5rem;
-            }
+            .settings-param {
+                display: table-row;
 
-            .settings-param-value {
-                display: table-cell;
-                padding-bottom: .5rem;
+                .settings-param-name {
+                    display: table-cell;
+                    padding-right: 3rem;
+                    padding-bottom: .5rem;
+                }
 
-                &.settings-param-color {
-                    position: relative;
+                .settings-param-value {
+                    display: table-cell;
+                    padding-bottom: .5rem;
 
-                    .settings-param-color-button {
-                        width: 32px;
-                        height: 21px;
-                    }
+                    &.settings-param-color {
+                        position: relative;
 
-                    .vc-sketch {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        z-index: 999;
+                        .settings-param-color-button {
+                            width: 100%;
+                            height: 21px;
+                            border: 1px solid #ccc;
+                            border-radius: 50px;
+                        }
+
+                        .vc-sketch {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            z-index: 999;
+                        }
                     }
                 }
             }
         }
-    }
 
-    .back-btn {
-        margin-top: 2rem;
+        .back-btn {
+            margin-top: 2rem;
+        }
     }
 </style>

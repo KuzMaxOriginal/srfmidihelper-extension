@@ -1,10 +1,15 @@
 {
-  "name": "SRF MIDI Helper",
+  "name": "Sight Reading Factory MIDI Helper",
   "version": "1.0",
-  "description": "SRF MIDI Helper v1.0",
+  "description": "Connects to your MIDI keyboard and allows to see if you play correct notes by highlighting them.",
   "manifest_version": 2,
   "browser_action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_title": "Sight Reading Factory MIDI Helper",
+    "default_icon": {
+      "19": "images/icon_19x19.png",
+      "38": "images/icon_38x38.png"
+    }
   },
   "permissions": [
     "nativeMessaging",
@@ -30,5 +35,10 @@
   },
   "web_accessible_resources": [
     "js/inject.js"
-  ]
+  ],
+  "icons": {
+    "16": "images/icon_16x16.png",
+    "48": "images/icon_48x48.png",
+    "128": "images/icon_128x128.png"
+  }
 }
