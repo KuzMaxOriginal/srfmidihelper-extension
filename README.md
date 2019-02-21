@@ -18,7 +18,7 @@ This video is demonstrating how to use the extension: *(available shortly)*
 
 1. Install [host application](https://github.com/KuzMaxOriginal/srfmidihelper-host) for your OS (required for connecting
 to your MIDI keyboard)
-2. Install the extension from Chrome Web Store *(link available shortly)
+2. Install the extension from Chrome Web Store: [link](https://chrome.google.com/webstore/detail/sight-reading-factory-mid/abmeklchcniphkahfejbcjplnkefnkaa/)
 
 ## Usage
 
