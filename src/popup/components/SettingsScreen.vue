@@ -9,24 +9,14 @@
             </div>
             <div class="settings-param">
                 <span class="settings-param-name">Current Note Color</span>
-                <div class="settings-param-value settings-param-color">
-                    <button class="button settings-param-color-button"
-                            :value="noteFillHighlighted"
-                            :style="{'background-color': noteFillHighlighted}"
-                            @click="displayPickerNoteHighlighted = true"></button>
-                    <sketch-picker v-show="displayPickerNoteHighlighted" :disableAlpha="true"
-                                   @input="setNoteFillHighlighted" :value="noteFillHighlighted"/>
+                <div class="settings-param-value">
+                    <pick-color :value="noteFillHighlighted" @input="setNoteFillHighlighted"/>
                 </div>
             </div>
             <div class="settings-param">
                 <span class="settings-param-name">Wrong Note Color</span>
                 <div class="settings-param-value settings-param-color">
-                    <button class="button settings-param-color-button"
-                            :value="noteFillWrong"
-                            :style="{'background-color': noteFillWrong}"
-                            @click="displayPickerNoteWrong = true"></button>
-                    <sketch-picker v-show="displayPickerNoteWrong" :disableAlpha="true"
-                                   @input="setNoteFillWrong" :value="noteFillWrong"/>
+                    <pick-color :value="noteFillWrong" @input="setNoteFillWrong"/>
                 </div>
             </div>
         </div>
@@ -37,33 +27,17 @@
 </template>
 
 <script>
-    import {Sketch as SketchPicker} from 'vue-color';
     import {ToggleButton} from 'vue-js-toggle-button'
 
     import {storage} from "../../common";
     import constants from "../constants";
+    import PickColor from "./PickColor";
 
     export default {
         name: "settings-screen",
         components: {
             'toggle-button': ToggleButton,
-            'sketch-picker': SketchPicker
-        },
-        beforeRouteEnter(to, from, next) {
-            next((vm) => {
-                vm.routeFrom = from;
-            });
-        },
-        mounted() {
-            document.addEventListener("click", (event) => {
-                if (event.target.closest(".vc-sketch, .settings-param-color-button")) {
-                    return;
-                }
-
-                this.hideColorPickers();
-            });
-
-
+            'pick-color': PickColor
         },
         data() {
             return {
@@ -71,9 +45,6 @@
                 isSwitchedOn: this.$store.state.isSwitchedOn,
                 noteFillHighlighted: this.$store.state.noteFillHighlighted,
                 noteFillWrong: this.$store.state.noteFillWrong,
-
-                displayPickerNoteHighlighted: false,
-                displayPickerNoteWrong: false,
             };
         },
         methods: {
@@ -81,17 +52,13 @@
                 this.isSwitchedOn = input.value;
                 storage.update({isSwitchedOn: this.isSwitchedOn});
             },
-            setNoteFillHighlighted(input) {
-                this.noteFillHighlighted = input.hex;
+            setNoteFillHighlighted(value) {
+                this.noteFillHighlighted = value;
                 storage.update({noteFillHighlighted: this.noteFillHighlighted});
             },
-            setNoteFillWrong(input) {
-                this.noteFillWrong = input.hex;
+            setNoteFillWrong(value) {
+                this.noteFillWrong = value;
                 storage.update({noteFillWrong: this.noteFillWrong});
-            },
-            hideColorPickers() {
-                this.displayPickerNoteHighlighted = false;
-                this.displayPickerNoteWrong = false;
             },
             goBack() {
                 this.$store.dispatch(constants.PUSH_ROUTE, this.$store.getters.lastRoute);
@@ -120,24 +87,6 @@
                 .settings-param-value {
                     display: table-cell;
                     padding-bottom: .5rem;
-
-                    &.settings-param-color {
-                        position: relative;
-
-                        .settings-param-color-button {
-                            width: 100%;
-                            height: 21px;
-                            border: 1px solid #ccc;
-                            border-radius: 50px;
-                        }
-
-                        .vc-sketch {
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            z-index: 999;
-                        }
-                    }
                 }
             }
         }
