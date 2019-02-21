@@ -18,7 +18,7 @@
                 this.$router.push({name: "select-device"});
             },
             resetNotes() {
-                // storage.update({currentNoteIndex: 0, wrongNotesCount: 0});
+                storage.update({currentNoteIndex: 0, wrongNotesCount: 0});
             }
         }
     };
