@@ -1,6 +1,6 @@
-# Sight Reading Factory MIDI Helper
+# Sight Reading MIDI Helper
 
-This extension was written for education purposes for those who have MIDI keyboard and actively use Sight Reading Factory
+This extension was written for education purposes for those who have MIDI keyboard and actively practice sight 
 to enhance their sight reading skills, and want to see if they're playing correct notes or not.
 
 ## Demo
@@ -23,7 +23,7 @@ to your MIDI keyboard)
 ## Usage
 
 Once you have installed the host application (see installation section) and the extension, you need to open [Sight
-Reading Factory app](https://www.sightreadingfactory.com/app) and generate new sheet music. If everything was set up
+Reading app](https://www.sightreadingfactory.com/app) and generate new sheet music. If everything was set up
 correctly, the first pitches will be highlighted with red color.
 
 Now you want to set up connection to your MIDI device. To do that, simply choose your device from a dropdown box and
