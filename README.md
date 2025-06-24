@@ -3,10 +3,6 @@
 This extension was written for education purposes for those who have MIDI keyboard and actively practice sight 
 to enhance their sight reading skills, and want to see if they're playing correct notes or not.
 
-## Demo
-
-This video is demonstrating how to use the extension: *(available shortly)*
-
 ## Features
 
 * Check if you're playing correct notes (correct current note is red highlighted)
